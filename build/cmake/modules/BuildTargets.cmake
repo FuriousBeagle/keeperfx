@@ -7,11 +7,13 @@ file(GLOB_RECURSE KEEPERFX_SOURCES_CXX CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/sr
 list(FILTER KEEPERFX_SOURCES_C   EXCLUDE REGEX "/src/ftests/")
 list(FILTER KEEPERFX_SOURCES_CXX EXCLUDE REGEX "/src/ftests/")
 
-# Desktop platform filtering (matches the hand Makefiles).
+# Platform filtering (matches the hand Makefiles for desktop targets).
 if(WIN32)
-    list(FILTER KEEPERFX_SOURCES_CXX EXCLUDE REGEX "/src/linux\\.cpp$|/PlatformLinux\\.cpp$")
+    list(FILTER KEEPERFX_SOURCES_CXX EXCLUDE REGEX "/src/linux\\.cpp$|/PlatformLinux\\.cpp$|/PlatformIOS\\.cpp$")
+elseif(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    list(FILTER KEEPERFX_SOURCES_CXX EXCLUDE REGEX "/src/(cdrom|steam_api|windows|linux)\\.cpp$|/Platform(Windows|Linux)\\.cpp$")
 elseif(UNIX AND NOT APPLE)
-    list(FILTER KEEPERFX_SOURCES_CXX EXCLUDE REGEX "/src/(cdrom|steam_api|windows)\\.cpp$|/PlatformWindows\\.cpp$")
+    list(FILTER KEEPERFX_SOURCES_CXX EXCLUDE REGEX "/src/(cdrom|steam_api|windows)\\.cpp$|/PlatformWindows\\.cpp$|/PlatformIOS\\.cpp$")
 endif()
 
 add_executable(keeperfx       ${KEEPERFX_SOURCES_C} ${KEEPERFX_SOURCES_CXX})
