@@ -9,16 +9,17 @@ fi
 LUAJIT_SRC="$1"
 SDK_NAME="${KFX_IOS_SDK:-iphoneos}"
 ARCH="${KFX_IOS_ARCH:-arm64}"
+DEPLOYMENT_TARGET="${KFX_IOS_DEPLOYMENT_TARGET:-15.0}"
 SDK_PATH="$(xcrun --sdk "$SDK_NAME" --show-sdk-path)"
 CLANG="$(xcrun --sdk "$SDK_NAME" --find clang)"
 CLANG_DIR="$(dirname "$CLANG")"
 HOST_CLANG="$(xcrun --sdk macosx --find clang)"
 HOST_ARCH="$(uname -m)"
-TARGET_FLAGS="-arch ${ARCH} -isysroot ${SDK_PATH}"
+TARGET_FLAGS="-arch ${ARCH} -isysroot ${SDK_PATH} -miphoneos-version-min=${DEPLOYMENT_TARGET}"
 
-if [ -n "${KFX_IOS_DEPLOYMENT_TARGET:-}" ]; then
-    TARGET_FLAGS="${TARGET_FLAGS} -miphoneos-version-min=${KFX_IOS_DEPLOYMENT_TARGET}"
-fi
+# LuaJIT's iOS Makefile explicitly requires this environment variable. Keep it
+# aligned with the deployment target used for the iOS target objects.
+export MACOSX_DEPLOYMENT_TARGET="${DEPLOYMENT_TARGET}"
 
 # LuaJIT's build first creates minilua/buildvm and executes those tools on the
 # build host. Xcode propagates the iOS cross-compilation environment into this
@@ -38,6 +39,7 @@ MINILUA="$LUAJIT_SRC/src/host/minilua"
 echo "==== LuaJIT host tool diagnostics ===="
 echo "host architecture: ${HOST_ARCH}"
 echo "host compiler: ${HOST_CLANG}"
+echo "deployment target: ${MACOSX_DEPLOYMENT_TARGET}"
 file "$MINILUA" || true
 lipo -info "$MINILUA" || true
 otool -L "$MINILUA" || true
