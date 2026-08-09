@@ -2,10 +2,13 @@
 
 if(WIN32)
     kfx_status("PLATFORM" "Windows / MinGW-w64 (i686)")
+elseif(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    kfx_status("PLATFORM" "iOS / ARM64")
+    add_compile_definitions(KFX_IOS=1)
 elseif(UNIX AND NOT APPLE)
     kfx_status("PLATFORM" "Linux (x86_64)")
 else()
-    message(FATAL_ERROR "Unsupported platform (only Windows/MinGW and Linux are supported)")
+    message(FATAL_ERROR "Unsupported platform (only Windows/MinGW, Linux and iOS are supported)")
 endif()
 
 add_compile_definitions("DEBUG=$<IF:$<CONFIG:Debug>,1,0>")
