@@ -9,11 +9,17 @@ list(FILTER KEEPERFX_SOURCES_CXX EXCLUDE REGEX "/src/ftests/")
 
 # Platform filtering (matches the hand Makefiles for desktop targets).
 if(WIN32)
-    list(FILTER KEEPERFX_SOURCES_CXX EXCLUDE REGEX "/src/linux\\.cpp$|/PlatformLinux\\.cpp$|/PlatformIOS\\.cpp$")
+    list(FILTER KEEPERFX_SOURCES_C   EXCLUDE REGEX "/src/kfx/platform/ios/")
+    list(FILTER KEEPERFX_SOURCES_CXX EXCLUDE REGEX "/src/kfx/platform/ios/|/src/linux\\.cpp$|/PlatformLinux\\.cpp$|/PlatformIOS\\.cpp$")
 elseif(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "iOS")
-    list(FILTER KEEPERFX_SOURCES_CXX EXCLUDE REGEX "/src/(cdrom|steam_api|windows|linux)\\.cpp$|/Platform(Windows|Linux)\\.cpp$")
+    # Initial iOS milestone: keep ENet multiplayer transport, but defer FFmpeg
+    # movies, web matchmaking, and automatic NAT-PMP/UPnP port forwarding.
+    # Small iOS replacements under src/kfx/platform/ios provide those APIs.
+    list(FILTER KEEPERFX_SOURCES_C EXCLUDE REGEX "/src/net_matchmaking\\.c$")
+    list(FILTER KEEPERFX_SOURCES_CXX EXCLUDE REGEX "/src/(bflib_fmvids|net_portforward|cdrom|steam_api|windows|linux)\\.cpp$|/Platform(Windows|Linux)\\.cpp$")
 elseif(UNIX AND NOT APPLE)
-    list(FILTER KEEPERFX_SOURCES_CXX EXCLUDE REGEX "/src/(cdrom|steam_api|windows)\\.cpp$|/PlatformWindows\\.cpp$|/PlatformIOS\\.cpp$")
+    list(FILTER KEEPERFX_SOURCES_C   EXCLUDE REGEX "/src/kfx/platform/ios/")
+    list(FILTER KEEPERFX_SOURCES_CXX EXCLUDE REGEX "/src/kfx/platform/ios/|/src/(cdrom|steam_api|windows)\\.cpp$|/PlatformWindows\\.cpp$|/PlatformIOS\\.cpp$")
 endif()
 
 add_executable(keeperfx       ${KEEPERFX_SOURCES_C} ${KEEPERFX_SOURCES_CXX})
