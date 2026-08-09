@@ -17,25 +17,34 @@ HOST_CLANG="$(xcrun --sdk macosx --find clang)"
 HOST_ARCH="$(uname -m)"
 TARGET_FLAGS="-arch ${ARCH} -isysroot ${SDK_PATH} -miphoneos-version-min=${DEPLOYMENT_TARGET}"
 
-# LuaJIT's iOS Makefile explicitly requires this environment variable. Keep it
-# aligned with the deployment target used for the iOS target objects.
+# LuaJIT's Darwin/iOS Makefile expects this variable to be present while it
+# detects and builds the host tools. Keep it aligned with the iOS deployment
+# target used by the generated Xcode project.
 export MACOSX_DEPLOYMENT_TARGET="${DEPLOYMENT_TARGET}"
 
-# LuaJIT's build first creates minilua/buildvm and executes those tools on the
-# build host. Xcode propagates the iOS cross-compilation environment into this
-# custom command, so force those helpers to be native macOS executables while
-# keeping the LuaJIT target objects on the iOS ARM64 toolchain.
+# LuaJIT first builds minilua/buildvm and executes them on the macOS build host.
+# Force those helpers to be native Apple Silicon executables. GitHub's arm64
+# runner produced an unsigned minilua that macOS terminated with SIGKILL, so
+# explicitly request the linker's ad-hoc signature for every LuaJIT host tool.
 HOST_CC="${HOST_CLANG} -arch ${HOST_ARCH}"
+HOST_LDFLAGS="-Wl,-adhoc_codesign"
 
-# Build minilua on its own first so CI can tell us exactly what macOS is being
-# asked to execute. This is deliberately diagnostic: once the host-tool issue is
-# understood these probes can be removed.
+# Build minilua on its own first so CI can verify the resulting host executable
+# before the full LuaJIT cross-build starts.
 make -C "$LUAJIT_SRC/src" clean >/dev/null 2>&1 || true
 make -C "$LUAJIT_SRC/src" \
     HOST_CC="$HOST_CC" \
+    HOST_LDFLAGS="$HOST_LDFLAGS" \
     host/minilua
 
 MINILUA="$LUAJIT_SRC/src/host/minilua"
+
+# Be defensive in case an older linker ignores -adhoc_codesign. This requires no
+# signing identity and is only for the native build-host helper.
+if ! codesign -v "$MINILUA" >/dev/null 2>&1; then
+    codesign --force --sign - "$MINILUA"
+fi
+
 echo "==== LuaJIT host tool diagnostics ===="
 echo "host architecture: ${HOST_ARCH}"
 echo "host compiler: ${HOST_CLANG}"
@@ -55,6 +64,7 @@ make -C "$LUAJIT_SRC" \
     BUILDMODE=static \
     DEFAULT_CC=clang \
     HOST_CC="$HOST_CC" \
+    HOST_LDFLAGS="$HOST_LDFLAGS" \
     CROSS="${CLANG_DIR}/" \
     TARGET_FLAGS="${TARGET_FLAGS}" \
     TARGET_SYS=iOS
