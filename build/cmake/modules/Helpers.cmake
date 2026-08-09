@@ -4,7 +4,8 @@ function(kfx_status PREFIX MESSAGE)
     message(STATUS "[${PREFIX}] ${MESSAGE}")
 endfunction()
 
-# Warning + optimisation flags, per platform (mirrors the hand Makefiles).
+# Warning + optimisation flags, per platform (mirrors the hand Makefiles where
+# applicable, but avoids desktop CPU assumptions on iOS).
 function(apply_keeperfx_warnings TARGET)
     if(WIN32)
         target_compile_options(${TARGET} PRIVATE
@@ -13,6 +14,12 @@ function(apply_keeperfx_warnings TARGET)
             -Werror -Wno-format-truncation
             -march=x86-64 -fno-omit-frame-pointer -fmessage-length=0 -O3
             $<$<COMPILE_LANGUAGE:C>:-Wimplicit>)
+    elseif(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        target_compile_options(${TARGET} PRIVATE
+            -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unknown-pragmas
+            -Wno-format-truncation -Wno-sign-compare
+            -g -O3
+            $<$<COMPILE_LANGUAGE:C>:-Wno-absolute-value>)
     else()
         target_compile_options(${TARGET} PRIVATE
             -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unknown-pragmas
@@ -28,6 +35,8 @@ function(apply_keeperfx_link_flags TARGET)
         target_link_options(${TARGET} PRIVATE
             -mwindows -Wl,--enable-auto-import -Wl,-Map,${TARGET}.map)
         target_link_libraries(${TARGET} PUBLIC -static stdc++ winpthread -dynamic)
+    elseif(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        target_link_options(${TARGET} PRIVATE -g)
     else()
         target_link_options(${TARGET} PRIVATE -g -rdynamic)
     endif()
