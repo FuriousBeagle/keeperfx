@@ -12,17 +12,65 @@ set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
 # -----------------------------------------------------------------------------
 # SDL3 + image + mixer
-# Use git checkouts so SDL_image/SDL_mixer can obtain their vendored decoder
-# submodules when building for an Apple target without a system package manager.
+#
+# Keep the iOS probe deliberately lean. SDL_image's stb backend handles the
+# common raster formats KeeperFX needs without dragging AVIF/WebP/TIFF and their
+# large vendored dependency graphs into every configure. SDL_mixer likewise uses
+# its built-in/dr_* and stb decoders for the MVP, avoiding Opus/FLAC/XMP/etc.
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
 set(SDL_TESTS OFF CACHE BOOL "" FORCE)
 set(SDL_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SDL_INSTALL OFF CACHE BOOL "" FORCE)
+
+set(SDLIMAGE_INSTALL OFF CACHE BOOL "" FORCE)
 set(SDLIMAGE_SAMPLES OFF CACHE BOOL "" FORCE)
 set(SDLIMAGE_TESTS OFF CACHE BOOL "" FORCE)
-set(SDLIMAGE_VENDORED ON CACHE BOOL "" FORCE)
+set(SDLIMAGE_VENDORED OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_DEPS_SHARED OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_BACKEND_STB ON CACHE BOOL "" FORCE)
+set(SDLIMAGE_BACKEND_IMAGEIO OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_ANI OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_GIF OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_JXL OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_LBM OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_PNM OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_QOI OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_SVG OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_TIF OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_WEBP OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_XCF OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_XPM OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_XV OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_BMP ON CACHE BOOL "" FORCE)
+set(SDLIMAGE_JPG ON CACHE BOOL "" FORCE)
+set(SDLIMAGE_PCX ON CACHE BOOL "" FORCE)
+set(SDLIMAGE_PNG ON CACHE BOOL "" FORCE)
+set(SDLIMAGE_TGA ON CACHE BOOL "" FORCE)
+set(SDLIMAGE_PNG_LIBPNG OFF CACHE BOOL "" FORCE)
+
+set(SDLMIXER_INSTALL OFF CACHE BOOL "" FORCE)
 set(SDLMIXER_SAMPLES OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(SDLMIXER_TESTS OFF CACHE BOOL "" FORCE)
-set(SDLMIXER_VENDORED ON CACHE BOOL "" FORCE)
+set(SDLMIXER_VENDORED OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_DEPS_SHARED OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_FLAC OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_GME OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_MOD OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_MIDI OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_OPUS OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_VORBIS_VORBISFILE OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_VORBIS_TREMOR OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_WAVPACK OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_AIFF ON CACHE BOOL "" FORCE)
+set(SDLMIXER_AU ON CACHE BOOL "" FORCE)
+set(SDLMIXER_VOC ON CACHE BOOL "" FORCE)
+set(SDLMIXER_WAVE ON CACHE BOOL "" FORCE)
+set(SDLMIXER_MP3 ON CACHE BOOL "" FORCE)
+set(SDLMIXER_MP3_DRMP3 ON CACHE BOOL "" FORCE)
+set(SDLMIXER_MP3_MPG123 OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_VORBIS_STB ON CACHE BOOL "" FORCE)
 
 FetchContent_Declare(SDL3
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
@@ -31,13 +79,11 @@ FetchContent_Declare(SDL3
 FetchContent_Declare(SDL3_image
     GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
     GIT_TAG release-3.4.4
-    GIT_SHALLOW TRUE
-    GIT_SUBMODULES_RECURSE TRUE)
+    GIT_SHALLOW TRUE)
 FetchContent_Declare(SDL3_mixer
     GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
     GIT_TAG release-3.2.4
-    GIT_SHALLOW TRUE
-    GIT_SUBMODULES_RECURSE TRUE)
+    GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(SDL3 SDL3_image SDL3_mixer)
 
 add_library(kfx_sdl3 INTERFACE)
@@ -54,7 +100,6 @@ FetchContent_Declare(kfx_zlib
     GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(kfx_zlib)
 
-# zlib's CMake project exposes zlibstatic when BUILD_SHARED_LIBS is disabled.
 add_library(zlib_static ALIAS zlibstatic)
 
 add_library(minizip_static STATIC
@@ -70,8 +115,6 @@ target_link_libraries(minizip_static PUBLIC zlibstatic)
 
 # -----------------------------------------------------------------------------
 # libspng
-# Build the single library source directly so it reuses the zlib target above
-# instead of trying to discover a host/system zlib during cross compilation.
 FetchContent_Declare(kfx_spng
     GIT_REPOSITORY https://github.com/randy408/libspng.git
     GIT_TAG v0.7.4
