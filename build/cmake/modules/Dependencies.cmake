@@ -13,6 +13,16 @@ set(KFX_DEPS_BASE "https://github.com/dkfans/kfx-deps/releases/download")
 set(D "${CMAKE_BINARY_DIR}/deps")
 set(KFX_CENTITOML_SRC "${CMAKE_SOURCE_DIR}/deps/centitoml")
 
+# iOS has its own source-built dependency graph. Return after wiring its linker
+# helper so Apple targets never fall through into the Linux/pkg-config path.
+if(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    include(DependenciesIOS)
+    function(kfx_link_dependencies TARGET)
+        kfx_link_ios_dependencies(${TARGET})
+    endfunction()
+    return()
+endif()
+
 # kfx_fetch(<dir> <url>): download + extract into <builddir>/deps/<dir>/ once.
 function(kfx_fetch dir url)
     set(_tgz "${D}/${dir}.tar.gz")
