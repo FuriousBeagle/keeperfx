@@ -12,6 +12,7 @@
 #include "kfx/platform/IPlatform.h"
 #include "kfx/platform/PlatformWindows.h"
 #include "kfx/platform/PlatformLinux.h"
+#include "kfx/platform/PlatformIOS.h"
 #include "post_inc.h"
 
 /******************************************************************************/
@@ -22,6 +23,8 @@ IPlatform* GetPlatform()
 {
 #if defined(_WIN32)
     static PlatformWindows s_platform;
+#elif defined(KFX_IOS)
+    static PlatformIOS s_platform;
 #else
     static PlatformLinux s_platform;
 #endif
