@@ -39,7 +39,7 @@ TbBool load_toml_file(const char *fname,VALUE *value, unsigned short flags)
 
     if (fsize < len)
     {
-        WARNMSG("failed to read file \"%s\".",fname);
+        WARNMSG("failed to read file \"%s\".\n",fname);
         free(buf);
         return false;
     }
@@ -96,29 +96,41 @@ int value_parse_model(int oclass, VALUE *value)
         return value_int32(value);
     if (value_type(value) != VALUE_STRING)
         return -1;
+
     const char *name = value_string(value);
+    long model_id;
     switch (oclass)
     {
     case TCls_Object:
     case TCls_AmbientSnd:
-        return get_id(object_desc, name);
+        model_id = get_id(object_desc, name);
+        break;
     case TCls_Shot:
-        return get_id(shot_desc, name);
+        model_id = get_id(shot_desc, name);
+        break;
     case TCls_EffectElem:
-        return get_id(effectelem_desc, name);
+        model_id = get_id(effectelem_desc, name);
+        break;
     case TCls_DeadCreature:
     case TCls_Creature:
-        return get_id(creature_desc, name);
+        model_id = get_id(creature_desc, name);
+        break;
     case TCls_Effect:
-        return get_id(effect_desc, name);
+        model_id = get_id(effect_desc, name);
+        break;
     case TCls_EffectGen:
-        return get_id(effectgen_desc, name);
+        model_id = get_id(effectgen_desc, name);
+        break;
     case TCls_Trap:
-        return get_id(trap_desc, name);
+        model_id = get_id(trap_desc, name);
+        break;
     case TCls_Door:
-        return get_id(door_desc, name);
+        model_id = get_id(door_desc, name);
+        break;
+    default:
+        return -1;
     }
-    return -1;
+    return (int)model_id;
 }
 
 int value_parse_anim(VALUE *value)
