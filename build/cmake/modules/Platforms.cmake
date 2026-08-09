@@ -4,6 +4,10 @@ if(WIN32)
     kfx_status("PLATFORM" "Windows / MinGW-w64 (i686)")
 elseif(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "iOS")
     kfx_status("PLATFORM" "iOS / ARM64")
+    # Keep both CMake-time platform selection and source-level conditionals in
+    # sync. add_compile_definitions() alone does not create a CMake variable,
+    # so guards such as if(KFX_IOS) would otherwise evaluate false.
+    set(KFX_IOS TRUE)
     add_compile_definitions(KFX_IOS=1)
 elseif(UNIX AND NOT APPLE)
     kfx_status("PLATFORM" "Linux (x86_64)")
