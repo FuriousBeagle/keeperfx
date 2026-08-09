@@ -55,9 +55,10 @@ codesign -dvv "$MINILUA" 2>&1 || true
 xattr -l "$MINILUA" 2>&1 || true
 echo "---- executing minilua ----"
 MINILUA_PROBE="$LUAJIT_SRC/src/host/minilua-probe.lua"
-printf '%s\n' 'print("minilua host probe OK")' > "$MINILUA_PROBE"
+printf '%s\n' 'local x = 1 + 1' 'if x ~= 2 then error("probe failed") end' > "$MINILUA_PROBE"
 "$MINILUA" "$MINILUA_PROBE"
 rm -f "$MINILUA_PROBE"
+echo "minilua host probe OK"
 
 echo "==== Building LuaJIT 2.1 for iOS ===="
 # LuaJIT's Darwin/iOS Makefile expects MACOSX_DEPLOYMENT_TARGET even for its iOS
