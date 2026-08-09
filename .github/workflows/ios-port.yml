@@ -49,4 +49,4 @@ jobs:
 
       - name: Build KeeperFX
         run: |
-          cmake --build build-ios --config Release --target keeperfx -- -allowProvisioningUpdates NO
+          cmake --build build-ios --config Release --target keeperfx
