@@ -18,6 +18,11 @@ function(apply_keeperfx_warnings TARGET)
         target_compile_options(${TARGET} PRIVATE
             -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unknown-pragmas
             -Wno-format-truncation -Wno-sign-compare
+            # KeeperFX historically assumes Windows-sized long values (32-bit).
+            # On LP64 iOS, Clang diagnoses many intentional legacy long->int
+            # conversions as -Wshorten-64-to-32. Keep all other warnings fatal,
+            # but do not block the port on these mechanical width differences.
+            -Wno-shorten-64-to-32
             -g -O3
             $<$<COMPILE_LANGUAGE:C>:-Wno-absolute-value>)
     else()
