@@ -48,5 +48,31 @@ jobs:
             -DPACKAGE_SUFFIX=iOS
 
       - name: Build KeeperFX
+        shell: bash
         run: |
-          cmake --build build-ios --config Release --target keeperfx
+          set -o pipefail
+          cmake --build build-ios --config Release --target keeperfx 2>&1 | tee build-ios/build.log
+
+      - name: Summarize build errors
+        if: failure()
+        shell: bash
+        run: |
+          grep -E -i 'fatal error:|(^|[^[:alpha:]])error:|undefined symbol|ld:|clang: error|CMake Error' build-ios/build.log \
+            | tail -n 150 \
+            | tee build-ios/build-errors.txt || true
+          {
+            echo '## iOS build errors'
+            echo '```text'
+            cat build-ios/build-errors.txt 2>/dev/null || echo 'No matching compiler/linker error lines found.'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-diagnostics
+          path: |
+            build-ios/build.log
+            build-ios/build-errors.txt
+          if-no-files-found: warn
