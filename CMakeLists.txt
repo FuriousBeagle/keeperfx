@@ -38,6 +38,34 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/build/cmake/modules)
 include(Helpers)
 include(Platforms)
 if(KFX_IOS)
+    # Keep the first iOS build intentionally lean. KeeperFX does not need the
+    # modern image/audio codec zoo just to reach the frontend, and several of
+    # those vendored projects build desktop helper executables that are invalid
+    # as iOS bundle targets. PNG/JPEG use SDL_image's portable backends; basic
+    # WAVE/VOC/AIFF plus dr_mp3/stb_vorbis/Timidity remain available in mixer.
+    set(SDLIMAGE_VENDORED OFF CACHE BOOL "" FORCE)
+    set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
+    set(SDLIMAGE_JXL OFF CACHE BOOL "" FORCE)
+    set(SDLIMAGE_WEBP OFF CACHE BOOL "" FORCE)
+    set(SDLIMAGE_TIF OFF CACHE BOOL "" FORCE)
+    set(SDLIMAGE_PNG_LIBPNG OFF CACHE BOOL "" FORCE)
+    set(SDLIMAGE_INSTALL OFF CACHE BOOL "" FORCE)
+
+    set(SDLMIXER_VENDORED OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_INSTALL OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_OPUS OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_GME OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_MOD OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_WAVPACK OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_FLAC_LIBFLAC OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_FLAC_DRFLAC ON CACHE BOOL "" FORCE)
+    set(SDLMIXER_MP3_MPG123 OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_MP3_DRMP3 ON CACHE BOOL "" FORCE)
+    set(SDLMIXER_VORBIS_VORBISFILE OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_VORBIS_STB ON CACHE BOOL "" FORCE)
+    set(SDLMIXER_MIDI_FLUIDSYNTH OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_MIDI_TIMIDITY ON CACHE BOOL "" FORCE)
+
     include(DependenciesIOS)
     # BuildTargets expects the same dependency-link facade on every platform.
     function(kfx_link_dependencies TARGET)
@@ -53,4 +81,8 @@ if(WIN32)
     add_subdirectory(tools)
 endif()
 
-include(Packaging)
+# The existing Packaging.cmake produces desktop archives. iOS needs an app
+# bundle/Xcode deployment path instead, which is handled separately by the port.
+if(NOT KFX_IOS)
+    include(Packaging)
+endif()
