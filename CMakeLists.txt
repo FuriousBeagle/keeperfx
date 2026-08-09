@@ -42,7 +42,7 @@ if(KFX_IOS)
     # modern image/audio codec zoo just to reach the frontend, and several of
     # those vendored projects build desktop helper executables that are invalid
     # as iOS bundle targets. PNG/JPEG use SDL_image's portable backends; basic
-    # WAVE/VOC/AIFF plus dr_mp3/stb_vorbis/Timidity remain available in mixer.
+    # WAVE/VOC/AIFF plus dr_mp3/stb_vorbis remain available in mixer.
     set(SDLIMAGE_VENDORED OFF CACHE BOOL "" FORCE)
     set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
     set(SDLIMAGE_JXL OFF CACHE BOOL "" FORCE)
@@ -65,6 +65,9 @@ if(KFX_IOS)
     set(SDLMIXER_VORBIS_STB ON CACHE BOOL "" FORCE)
     set(SDLMIXER_MIDI_FLUIDSYNTH OFF CACHE BOOL "" FORCE)
     set(SDLMIXER_MIDI_TIMIDITY ON CACHE BOOL "" FORCE)
+
+    # DependenciesIOS uses the same in-tree centitoml adapter as desktop builds.
+    set(KFX_CENTITOML_SRC "${CMAKE_SOURCE_DIR}/deps/centitoml")
 
     include(DependenciesIOS)
     # BuildTargets expects the same dependency-link facade on every platform.
